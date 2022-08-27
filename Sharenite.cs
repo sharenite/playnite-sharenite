@@ -34,15 +34,15 @@ namespace Sharenite
         {
             yield return new MainMenuItem
             {
-                Description = "Sharenite",
-                Action = (arguments) => SynchroniseGames()
+                Description = "Sharenite sync",
+                Action = async (arguments) => await SynchroniseGames()
             };
         }
 
-        public void SynchroniseGames()
+        public async Task SynchroniseGames()
         {
             var clientApi = new ShareniteAccountClient(this, PlayniteApi);
-            clientApi.SynchroniseGames();
+            await clientApi.SynchroniseGames();
         }
 
         public override void OnGameInstalled(OnGameInstalledEventArgs args)

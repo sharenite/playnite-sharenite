@@ -26,9 +26,15 @@ namespace Sharenite.Services
         private IPlayniteAPI api;
         private readonly string cookiesPath;
         private readonly Sharenite plugin;
-        private const string protocol = "http://";
-        private const string domain = "localhost";
-        private const string domainDev = ":3000";
+        // DEV
+        //private const string protocol = "http://";
+        //private const string domain = "localhost";
+        //private const string domainDev = ":3000";
+        // PROD
+        private const string protocol = "https://";
+        private const string domain = "www.sharenite.link";
+        private const string domainDev = "";
+        // URLs
         private const string loginUrl = protocol + domain + domainDev + "/users/sign_in";
         private const string homepageUrl = protocol + domain + domainDev + "/";
         private const string gameListUrl = protocol + domain + domainDev + "/api/v1/games";
@@ -165,6 +171,38 @@ namespace Sharenite.Services
                     {
                         var tempGame = new Game();
                         tempGame.name = game.Name;
+                        tempGame.added = game.Added;
+                        tempGame.community_score = game.CommunityScore;
+                        tempGame.critic_score = game.CriticScore;
+                        tempGame.description = game.Description;
+                        tempGame.favorite = game.Favorite;
+                        tempGame.game_id = game.GameId;
+                        tempGame.game_started_script = game.GameStartedScript;
+                        tempGame.hidden = game.Hidden;
+                        tempGame.include_library_plugin_action = game.IncludeLibraryPluginAction;
+                        tempGame.install_directory = game.InstallDirectory;
+                        tempGame.is_custom_game = game.IsCustomGame;
+                        tempGame.is_installed = game.IsInstalled;
+                        tempGame.is_installing = game.IsInstalling;
+                        tempGame.is_launching = game.IsLaunching;
+                        tempGame.is_running = game.IsRunning;
+                        tempGame.is_uninstalling = game.IsUninstalling;
+                        tempGame.last_activity = game.LastActivity;
+                        tempGame.manual = game.Manual;
+                        tempGame.modified = game.Modified;
+                        tempGame.notes = game.Notes;
+                        tempGame.play_count = game.PlayCount;
+                        tempGame.playtime = game.Playtime;
+                        tempGame.plugin_id = game.PluginId;
+                        tempGame.post_script = game.PostScript;
+                        tempGame.pre_script = game.PreScript;
+                        //tempGame.release_date = game.ReleaseDate;
+                        tempGame.sorting_name = game.SortingName;
+                        tempGame.use_global_game_started_script = game.UseGlobalGameStartedScript;
+                        tempGame.use_global_post_script = game.UseGlobalPostScript;
+                        tempGame.use_global_pre_script = game.UseGlobalPreScript;
+                        tempGame.user_score = game.UserScore;
+                        tempGame.version = game.Version;
                         games.games.Add(tempGame);
                     }                                  
 
@@ -176,13 +214,16 @@ namespace Sharenite.Services
 
                     var resp = httpClient.PostAsync(gameListUrl, byteContent).GetAwaiter().GetResult();
                     var strResponse = await resp.Content.ReadAsStringAsync();
-                    logger.Error(strResponse);
+                    if (Serialization.TryFromJson<ErrorUnathorized>(strResponse, out var error) && error.error == "401 Forbidden")
+                    {
+                        throw new Exception("User is not authenticated.");
+                    }
                 }
                 return;
             }
             catch (Exception e) when (!Debugger.IsAttached)
             {
-                logger.Error(e, "Failed to syncrhonise games.");
+                logger.Error(e, "Failed to synchronise games.");
                 return;
             }
         }
