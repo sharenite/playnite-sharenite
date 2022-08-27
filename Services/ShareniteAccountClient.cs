@@ -249,10 +249,10 @@ namespace Sharenite.Services
                         return false;
                     }
 
-                    if (Serialization.TryFromJson<List<Game>>(strResponse, out var games) && games != null)
-                    {
+                    //if (Serialization.TryFromJson<List<Game>>(strResponse, out var games) && games != null)
+                    //{
                         return true;
-                    }
+                    //}
                 }
                 return false;
             }
