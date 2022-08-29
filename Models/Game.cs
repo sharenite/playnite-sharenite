@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace Sharenite.Models
 {
-    class Game
+    class GamePost
     {
-        public int? id { get; set; }
         public string name { get; set; }
         public DateTime? added { get; set; }
         public int? community_score { get; set; }
@@ -42,6 +41,16 @@ namespace Sharenite.Models
         public bool use_global_pre_script { get; set; }
         public int? user_score { get; set; }
         public string version { get; set; }
+    }
+
+    class Game : GamePost
+    {
+        public int? id { get; set; }
+    }
+
+    class GamesPost
+    {
+        public List<GamePost> games;
     }
 
     class Games

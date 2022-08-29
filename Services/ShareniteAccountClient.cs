@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using Sharenite.Models;
+using Newtonsoft.Json;
 
 namespace Sharenite.Services
 {
@@ -157,6 +158,15 @@ namespace Sharenite.Services
             }
         }
 
+        public static string ToJson(object obj, bool formatted = false)
+        {
+            return JsonConvert.SerializeObject(obj, new JsonSerializerSettings()
+            {
+                Formatting = formatted ? Formatting.Indented : Formatting.None,
+                NullValueHandling = NullValueHandling.Include,
+            });
+        }
+
         public async Task SynchroniseGames()
         {
             try
@@ -165,11 +175,11 @@ namespace Sharenite.Services
                 using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
                 using (var httpClient = new HttpClient(handler))
                 {
-                    var games = new Games();
-                    games.games = new List<Game>();
+                    var games = new GamesPost();
+                    games.games = new List<GamePost>();
                     foreach (var game in api.Database.Games)
                     {
-                        var tempGame = new Game();
+                        var tempGame = new GamePost();
                         tempGame.name = game.Name;
                         tempGame.added = game.Added;
                         tempGame.community_score = game.CommunityScore;
@@ -207,8 +217,8 @@ namespace Sharenite.Services
                     }                                  
 
 
-                    var serializedData = Serialization.ToJson(games);
-                    var buffer = System.Text.Encoding.UTF8.GetBytes(serializedData);
+                    var serializedData = ToJson(games);
+                    var buffer = Encoding.UTF8.GetBytes(serializedData);
                     var byteContent = new ByteArrayContent(buffer);
                     byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
