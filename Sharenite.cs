@@ -38,8 +38,24 @@ namespace Sharenite
         {
             yield return new MainMenuItem
             {
-                Description = "Sharenite sync",
+                Description = "Resynchronize library with Sharenite",
                 Action = (arguments) => SynchroniseGames()
+            };
+        }
+
+
+        public override IEnumerable<GameMenuItem> GetGameMenuItems(GetGameMenuItemsArgs args)
+        {
+            return new List<GameMenuItem>
+            {
+                new GameMenuItem
+                {
+                    Description = "Synchronize game with Sharenite",
+                    Action = a =>
+                    {
+                        UpdateGames(args.Games);
+                    }
+                }
             };
         }
 
@@ -50,7 +66,27 @@ namespace Sharenite
                 {
                     clientApi.SynchroniseGames(args).GetAwaiter().GetResult();
                 },
-                new GlobalProgressOptions("Kicking off a full Sharenite synchronisation.", true)
+                new GlobalProgressOptions("Kicking off a full Sharenite resynchronisation.", true)
+                {
+                    IsIndeterminate = false
+                }
+            );
+
+            if (scanRes.Error != null)
+            {
+                logger.Error(scanRes.Error, "Failed.");
+                dialogs.ShowErrorMessage("Failed." + "\n" + scanRes.Error.Message, "");
+            }
+        }
+
+        public void UpdateGames(List<Game> games)
+        {
+            var clientApi = new ShareniteAccountClient(this, PlayniteApi);
+            var scanRes = dialogs.ActivateGlobalProgress((args) =>
+            {
+                clientApi.UpdateGames(args, games).GetAwaiter().GetResult();
+            },
+                new GlobalProgressOptions("Kicking off a Sharenite games update.", true)
                 {
                     IsIndeterminate = false
                 }

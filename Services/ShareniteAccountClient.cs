@@ -28,9 +28,9 @@ namespace Sharenite.Services
         private readonly string cookiesPath;
         private readonly Sharenite plugin;
         // DEV
-        //private const string protocol = "http://";
-        //private const string domain = "localhost";
-        //private const string domainDev = ":3000";
+        // private const string protocol = "http://";
+        // private const string domain = "localhost";
+        // private const string domainDev = ":3000";
         // PROD
         private const string protocol = "https://";
         private const string domain = "www.sharenite.link";
@@ -185,8 +185,11 @@ namespace Sharenite.Services
                     foreach (var game in api.Database.Games)
                     {
                         index++;
-                        args.CurrentProgressValue = index;
-                        args.Text = "Synchronising games (processing " + index + " out of " + gamesCount + ")";
+                        if (index % 50 == 0)
+                        {
+                            args.CurrentProgressValue = index;
+                            args.Text = "Synchronising games (processing " + index + " out of " + gamesCount + ")";
+                        }                        
                         var tempGame = new GamePost();
                         tempGame.name = game.Name;
                         tempGame.added = game.Added;
@@ -241,7 +244,7 @@ namespace Sharenite.Services
                     {
                         throw new Exception("User is not authenticated.");
                     }
-                    else if (resp.StatusCode != HttpStatusCode.Created)
+                    else if (resp.StatusCode != HttpStatusCode.Accepted)
                     {
                         ErrorGeneric errorGeneric;
                         Serialization.TryFromJson(strResponse, out errorGeneric);
@@ -262,7 +265,107 @@ namespace Sharenite.Services
                 return;
             }
         }
-        
+
+        public async Task UpdateGames(GlobalProgressActionArgs args, List<Playnite.SDK.Models.Game> databaseGames)
+        {
+            try
+            {
+                args.Text = "Reading authentication.";
+                var cookieContainer = ReadCookiesFromDisk();
+                using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
+                using (var httpClient = new HttpClient(handler))
+                {
+                    var games = new GamesPost();
+                    games.games = new List<GamePost>();
+                    var gamesCount = databaseGames.Count;
+                    args.ProgressMaxValue = gamesCount;
+                    args.Text = "Synchronising games (processing 0 out of " + gamesCount + ")";
+                    int index = 0;
+                    foreach (var game in databaseGames)
+                    {
+                        index++;
+                        if (index % 50 == 0)
+                        {
+                            args.CurrentProgressValue = index;
+                            args.Text = "Synchronising games (processing " + index + " out of " + gamesCount + ")";
+                        }
+                        var tempGame = new GamePost();
+                        tempGame.name = game.Name;
+                        tempGame.added = game.Added;
+                        tempGame.community_score = game.CommunityScore;
+                        tempGame.critic_score = game.CriticScore;
+                        tempGame.description = game.Description;
+                        tempGame.favorite = game.Favorite;
+                        tempGame.game_id = game.GameId;
+                        tempGame.game_started_script = game.GameStartedScript;
+                        tempGame.hidden = game.Hidden;
+                        tempGame.include_library_plugin_action = game.IncludeLibraryPluginAction;
+                        tempGame.install_directory = game.InstallDirectory;
+                        tempGame.is_custom_game = game.IsCustomGame;
+                        tempGame.is_installed = game.IsInstalled;
+                        tempGame.is_installing = game.IsInstalling;
+                        tempGame.is_launching = game.IsLaunching;
+                        tempGame.is_running = game.IsRunning;
+                        tempGame.is_uninstalling = game.IsUninstalling;
+                        tempGame.last_activity = game.LastActivity;
+                        tempGame.manual = game.Manual;
+                        tempGame.modified = game.Modified;
+                        tempGame.notes = game.Notes;
+                        tempGame.play_count = game.PlayCount;
+                        tempGame.playnite_id = game.Id;
+                        tempGame.playtime = game.Playtime;
+                        tempGame.plugin_id = game.PluginId;
+                        tempGame.post_script = game.PostScript;
+                        tempGame.pre_script = game.PreScript;
+                        //tempGame.release_date = game.ReleaseDate;
+                        tempGame.sorting_name = game.SortingName;
+                        tempGame.use_global_game_started_script = game.UseGlobalGameStartedScript;
+                        tempGame.use_global_post_script = game.UseGlobalPostScript;
+                        tempGame.use_global_pre_script = game.UseGlobalPreScript;
+                        tempGame.user_score = game.UserScore;
+                        tempGame.version = game.Version;
+                        games.games.Add(tempGame);
+                        if (args.CancelToken.IsCancellationRequested)
+                        {
+                            return;
+                        }
+                    }
+
+                    args.Text = "Sending " + gamesCount + " game to Sharenite.";
+                    var serializedData = ToJson(games);
+                    var buffer = Encoding.UTF8.GetBytes(serializedData);
+                    var byteContent = new ByteArrayContent(buffer);
+                    byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                    var resp = httpClient.PutAsync(gameListUrl, byteContent).GetAwaiter().GetResult();
+                    var strResponse = await resp.Content.ReadAsStringAsync();
+                    if (resp.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        throw new Exception("User is not authenticated.");
+                    }
+                    else if (resp.StatusCode != HttpStatusCode.Accepted)
+                    {
+                        ErrorGeneric errorGeneric;
+                        Serialization.TryFromJson(strResponse, out errorGeneric);
+                        if (errorGeneric != null)
+                        {
+                            throw new Exception(errorGeneric.error);
+                        }
+                        else
+                        {
+                            throw new Exception(strResponse);
+                        }
+                    }
+                }
+                return;
+            }
+            catch (Exception e) when (!Debugger.IsAttached)
+            {
+                logger.Error(e, "Failed to synchronise games.");
+                return;
+            }
+        }
+
         public async Task<bool> GetIsUserLoggedIn()
         {
             if (!File.Exists(cookiesPath))
