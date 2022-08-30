@@ -16,6 +16,7 @@ namespace Sharenite
     {
         private static readonly ILogger logger = LogManager.GetLogger();
         private readonly IDialogsFactory dialogs;
+        private ShareniteSettingsViewModel settingsViewModel;
 
 
         private ShareniteSettingsViewModel settings { get; set; }
@@ -27,6 +28,7 @@ namespace Sharenite
         {
             settings = new ShareniteSettingsViewModel(this, api);
             dialogs = api.Dialogs;
+            settingsViewModel = new ShareniteSettingsViewModel(this, api);
             Properties = new GenericPluginProperties
             {
                 HasSettings = true
@@ -127,6 +129,13 @@ namespace Sharenite
         public override void OnApplicationStarted(OnApplicationStartedEventArgs args)
         {
             // Add code to be executed when Playnite is initialized.
+            if (settingsViewModel.Settings.resyncAfterBigUpdate01)
+            {
+                SynchroniseGames();
+                settingsViewModel.BeginEdit();
+                settingsViewModel.Settings.resyncAfterBigUpdate01 = false;
+                settingsViewModel.EndEdit();
+            }
         }
 
         public override void OnApplicationStopped(OnApplicationStoppedEventArgs args)
