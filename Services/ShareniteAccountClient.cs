@@ -167,18 +167,26 @@ namespace Sharenite.Services
             });
         }
 
-        public async Task SynchroniseGames()
+        public async Task SynchroniseGames(GlobalProgressActionArgs args)
         {
             try
             {
+                args.Text = "Reading authentication.";
                 var cookieContainer = ReadCookiesFromDisk();
                 using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
                 using (var httpClient = new HttpClient(handler))
                 {
                     var games = new GamesPost();
                     games.games = new List<GamePost>();
+                    var gamesCount = api.Database.Games.Count;
+                    args.ProgressMaxValue = gamesCount;
+                    args.Text = "Synchronising games (processing 0 out of " + gamesCount + ")";
+                    int index = 0;
                     foreach (var game in api.Database.Games)
                     {
+                        index++;
+                        args.CurrentProgressValue = index;
+                        args.Text = "Synchronising games (processing " + index + " out of " + gamesCount + ")";
                         var tempGame = new GamePost();
                         tempGame.name = game.Name;
                         tempGame.added = game.Added;
@@ -215,9 +223,13 @@ namespace Sharenite.Services
                         tempGame.user_score = game.UserScore;
                         tempGame.version = game.Version;
                         games.games.Add(tempGame);
-                    }                                  
+                        if (args.CancelToken.IsCancellationRequested)
+                        {
+                            return;
+                        }
+                    }
 
-
+                    args.Text = "Sending " + gamesCount + " game to Sharenite.";
                     var serializedData = ToJson(games);
                     var buffer = Encoding.UTF8.GetBytes(serializedData);
                     var byteContent = new ByteArrayContent(buffer);
@@ -225,9 +237,21 @@ namespace Sharenite.Services
 
                     var resp = httpClient.PostAsync(gameListUrl, byteContent).GetAwaiter().GetResult();
                     var strResponse = await resp.Content.ReadAsStringAsync();
-                    if (Serialization.TryFromJson<ErrorUnathorized>(strResponse, out var error) && error.error == "401 Forbidden")
+                    if (resp.StatusCode == HttpStatusCode.Unauthorized)
                     {
                         throw new Exception("User is not authenticated.");
+                    }
+                    else if (resp.StatusCode != HttpStatusCode.Created)
+                    {
+                        ErrorGeneric errorGeneric;
+                        Serialization.TryFromJson(strResponse, out errorGeneric);
+                        if (errorGeneric != null) {
+                            throw new Exception(errorGeneric.error);
+                        }
+                        else
+                        {
+                            throw new Exception(strResponse);
+                        }
                     }
                 }
                 return;
@@ -239,7 +263,6 @@ namespace Sharenite.Services
             }
         }
         
-
         public async Task<bool> GetIsUserLoggedIn()
         {
             if (!File.Exists(cookiesPath))

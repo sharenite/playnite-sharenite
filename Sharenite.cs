@@ -15,14 +15,18 @@ namespace Sharenite
     public class Sharenite : GenericPlugin
     {
         private static readonly ILogger logger = LogManager.GetLogger();
+        private readonly IDialogsFactory dialogs;
+
 
         private ShareniteSettingsViewModel settings { get; set; }
+
 
         public override Guid Id { get; } = Guid.Parse("62d53f25-4e62-4f27-a49e-89e73cb1fd48");
 
         public Sharenite(IPlayniteAPI api) : base(api)
         {
             settings = new ShareniteSettingsViewModel(this, api);
+            dialogs = api.Dialogs;
             Properties = new GenericPluginProperties
             {
                 HasSettings = true
@@ -35,14 +39,28 @@ namespace Sharenite
             yield return new MainMenuItem
             {
                 Description = "Sharenite sync",
-                Action = async (arguments) => await SynchroniseGames()
+                Action = (arguments) => SynchroniseGames()
             };
         }
 
-        public async Task SynchroniseGames()
+        public void SynchroniseGames()
         {
             var clientApi = new ShareniteAccountClient(this, PlayniteApi);
-            await clientApi.SynchroniseGames();
+            var scanRes = dialogs.ActivateGlobalProgress((args) =>
+                {
+                    clientApi.SynchroniseGames(args).GetAwaiter().GetResult();
+                },
+                new GlobalProgressOptions("Kicking off a full Sharenite synchronisation.", true)
+                {
+                    IsIndeterminate = false
+                }
+            );
+
+            if (scanRes.Error != null)
+            {
+                logger.Error(scanRes.Error, "Failed.");
+                dialogs.ShowErrorMessage("Failed." + "\n" + scanRes.Error.Message, "");
+            }
         }
 
         public override void OnGameInstalled(OnGameInstalledEventArgs args)

@@ -10,4 +10,8 @@ namespace Sharenite.Models
     {
         public string error { get; set; }
     }
+    class ErrorGeneric
+    {
+        public string error { get; set; }
+    }
 }

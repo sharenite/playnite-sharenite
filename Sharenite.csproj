@@ -51,7 +51,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\ErrorUnathorized.cs" />
+    <Compile Include="Models\Error.cs" />
     <Compile Include="Models\Game.cs" />
     <Compile Include="Services\ShareniteAccountClient.cs" />
     <Compile Include="Sharenite.cs" />
