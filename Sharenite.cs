@@ -16,19 +16,16 @@ namespace Sharenite
     {
         private static readonly ILogger logger = LogManager.GetLogger();
         private readonly IDialogsFactory dialogs;
-        private ShareniteSettingsViewModel settingsViewModel;
-
-
+        
         private ShareniteSettingsViewModel settings { get; set; }
-
-
         public override Guid Id { get; } = Guid.Parse("62d53f25-4e62-4f27-a49e-89e73cb1fd48");
 
         public Sharenite(IPlayniteAPI api) : base(api)
         {
             settings = new ShareniteSettingsViewModel(this, api);
             dialogs = api.Dialogs;
-            settingsViewModel = new ShareniteSettingsViewModel(this, api);
+            api.Database.Games.ItemCollectionChanged += Games_ItemCollectionChanged;
+            api.Database.Games.ItemUpdated += Games_ItemUpdated;
             Properties = new GenericPluginProperties
             {
                 HasSettings = true
@@ -100,6 +97,74 @@ namespace Sharenite
                 dialogs.ShowErrorMessage("Failed." + "\n" + scanRes.Error.Message, "");
             }
         }
+        public void RemoveGames(List<Game> games)
+        {
+            var clientApi = new ShareniteAccountClient(this, PlayniteApi);
+            var scanRes = dialogs.ActivateGlobalProgress((args) =>
+            {
+                clientApi.DeleteGames(args, games).GetAwaiter().GetResult();
+            },
+                new GlobalProgressOptions("Kicking off a Sharenite games update.", true)
+                {
+                    IsIndeterminate = false
+                }
+            );
+
+            if (scanRes.Error != null)
+            {
+                logger.Error(scanRes.Error, "Failed.");
+                dialogs.ShowErrorMessage("Failed." + "\n" + scanRes.Error.Message, "");
+            }
+        }
+
+
+        public void UpdateGame(Game game)
+        {
+            var clientApi = new ShareniteAccountClient(this, PlayniteApi);
+            var scanRes = dialogs.ActivateGlobalProgress((args) =>
+            {
+                clientApi.UpdateGame(args, game).GetAwaiter().GetResult();
+            },
+                new GlobalProgressOptions("Kicking off a Sharenite games update.", true)
+                {
+                    IsIndeterminate = false
+                }
+            );
+
+            if (scanRes.Error != null)
+            {
+                logger.Error(scanRes.Error, "Failed.");
+                dialogs.ShowErrorMessage("Failed." + "\n" + scanRes.Error.Message, "");
+            }
+        }
+
+        public void Games_ItemUpdated(object sender, ItemUpdatedEventArgs<Game> args)
+        {
+            if (this.LoadPluginSettings<ShareniteSettings>().keepInSync)
+            {
+                List<Game> updatedGames = new List<Game>();
+                foreach (var updatedItem in args.UpdatedItems)
+                {
+                    updatedGames.Add(updatedItem.NewData);
+                }
+                UpdateGames(updatedGames);
+            }
+        }
+
+        public void Games_ItemCollectionChanged(object sender, ItemCollectionChangedEventArgs<Game> args)
+        {
+            if (this.LoadPluginSettings<ShareniteSettings>().keepInSync)
+            {
+                if (args.AddedItems.Count > 0)
+                {
+                    UpdateGames(args.AddedItems);
+                }
+                if (args.RemovedItems.Count > 0)
+                {
+                    RemoveGames(args.RemovedItems);
+                }
+            }
+        }
 
         public override void OnGameInstalled(OnGameInstalledEventArgs args)
         {
@@ -129,12 +194,12 @@ namespace Sharenite
         public override void OnApplicationStarted(OnApplicationStartedEventArgs args)
         {
             // Add code to be executed when Playnite is initialized.
-            if (settingsViewModel.Settings.resyncAfterBigUpdate01)
+            if (settings.Settings.resyncAfterBigUpdate01)
             {
                 SynchroniseGames();
-                settingsViewModel.BeginEdit();
-                settingsViewModel.Settings.resyncAfterBigUpdate01 = false;
-                settingsViewModel.EndEdit();
+                settings.BeginEdit();
+                settings.Settings.resyncAfterBigUpdate01 = false;
+                settings.EndEdit();
             }
         }
 

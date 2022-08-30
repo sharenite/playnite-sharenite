@@ -54,6 +54,12 @@ namespace Sharenite.Models
         public List<GamePost> games;
     }
 
+    class GamePut
+    {
+        public GamePost game;
+    }
+
+
     class Games
     {
         public List<Game> games;
