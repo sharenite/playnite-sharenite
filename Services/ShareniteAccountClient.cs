@@ -202,6 +202,7 @@ namespace Sharenite.Services
                         tempGame.modified = game.Modified;
                         tempGame.notes = game.Notes;
                         tempGame.play_count = game.PlayCount;
+                        tempGame.playnite_id = game.Id;
                         tempGame.playtime = game.Playtime;
                         tempGame.plugin_id = game.PluginId;
                         tempGame.post_script = game.PostScript;

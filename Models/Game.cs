@@ -30,6 +30,7 @@ namespace Sharenite.Models
         public DateTime? modified { get; set; }
         public string notes { get; set; }
         public UInt64 play_count { get; set; }
+        public Guid playnite_id { get; set; }
         public UInt64 playtime { get; set; }
         public Guid plugin_id { get; set; }
         public string post_script { get; set; }
