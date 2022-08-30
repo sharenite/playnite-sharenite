@@ -1,5 +1,11 @@
 AddonId: Sharenite_62d53f25-4e62-4f27-a49e-89e73cb1fd48
 Packages:
+  - Version: 0.3
+    RequiredApiVersion: 6.2.0
+    ReleaseDate: 2022-08-30
+    PackageUrl: https://github.com/sharenite/playnite-sharenite/releases/download/0.3/Sharenite_0_3.pext
+    Changelog:
+      - Added 'keep in sync' feature - now your games can be synchronized every time a change occurs
   - Version: 0.2
     RequiredApiVersion: 6.2.0
     ReleaseDate: 2022-08-29
