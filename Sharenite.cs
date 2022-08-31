@@ -73,8 +73,8 @@ namespace Sharenite
 
             if (scanRes.Error != null)
             {
-                logger.Error(scanRes.Error, "Failed.");
-                dialogs.ShowErrorMessage("Failed." + "\n" + scanRes.Error.Message, "");
+                logger.Error(scanRes.Error, "Sharenite synchronization failed.");
+                dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
             }
         }
 
@@ -93,8 +93,8 @@ namespace Sharenite
 
             if (scanRes.Error != null)
             {
-                logger.Error(scanRes.Error, "Failed.");
-                dialogs.ShowErrorMessage("Failed." + "\n" + scanRes.Error.Message, "");
+                logger.Error(scanRes.Error, "Sharenite synchronization failed.");
+                dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
             }
         }
         public void RemoveGames(List<Game> games)
@@ -112,8 +112,8 @@ namespace Sharenite
 
             if (scanRes.Error != null)
             {
-                logger.Error(scanRes.Error, "Failed.");
-                dialogs.ShowErrorMessage("Failed." + "\n" + scanRes.Error.Message, "");
+                logger.Error(scanRes.Error, "Sharenite synchronization failed.");
+                dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
             }
         }
 
@@ -133,8 +133,8 @@ namespace Sharenite
 
             if (scanRes.Error != null)
             {
-                logger.Error(scanRes.Error, "Failed.");
-                dialogs.ShowErrorMessage("Failed." + "\n" + scanRes.Error.Message, "");
+                logger.Error(scanRes.Error, "Sharenite synchronization failed.");
+                dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
             }
         }
 
