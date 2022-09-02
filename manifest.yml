@@ -1,5 +1,11 @@
 AddonId: Sharenite_62d53f25-4e62-4f27-a49e-89e73cb1fd48
 Packages:
+  - Version: 0.5
+    RequiredApiVersion: 6.2.0
+    ReleaseDate: 2022-09-02
+    PackageUrl: https://github.com/sharenite/playnite-sharenite/releases/download/0.5/Sharenite_0_5.pext
+    Changelog:
+      - Added a 5s delay on automatic synchronization to prevent too many updates
   - Version: 0.4
     RequiredApiVersion: 6.2.0
     ReleaseDate: 2022-08-31
