@@ -16,7 +16,10 @@ namespace Sharenite
     {
         private static readonly ILogger logger = LogManager.GetLogger();
         private readonly IDialogsFactory dialogs;
-        
+        private List<Guid> gameIdsToRemove;
+        private List<Guid> gameIdsToUpdate;
+        private System.Timers.Timer timer;
+
         private ShareniteSettingsViewModel settings { get; set; }
         public override Guid Id { get; } = Guid.Parse("62d53f25-4e62-4f27-a49e-89e73cb1fd48");
 
@@ -26,6 +29,13 @@ namespace Sharenite
             dialogs = api.Dialogs;
             api.Database.Games.ItemCollectionChanged += Games_ItemCollectionChanged;
             api.Database.Games.ItemUpdated += Games_ItemUpdated;
+            timer = new System.Timers.Timer();
+            timer.Elapsed += (_,__) => handleTimerUpdate();
+            timer.AutoReset = false;
+            timer.Interval = 5000;
+            gameIdsToRemove = new List<Guid>();
+            gameIdsToUpdate = new List<Guid>();
+
             Properties = new GenericPluginProperties
             {
                 HasSettings = true
@@ -138,17 +148,62 @@ namespace Sharenite
             }
         }
 
+        private void handleTimerUpdate()
+        {            
+            timer.Stop();
+
+            // Remove pending games
+            List<Game> gamesToRemove = new List<Game>();
+            int toRemove = 0;
+            foreach (Guid id in gameIdsToRemove)
+            {
+                Game game = new Game();
+                game.Id = id;
+                gamesToRemove.Add(game);
+                toRemove++;
+            }
+            gameIdsToRemove.RemoveRange(0, toRemove);
+            if (gamesToRemove.Count > 0)
+            {
+                RemoveGames(gamesToRemove.GroupBy(game => game.Id).Select(group => group.First()).Cast<Game>().ToList());
+            }
+
+            // Update pending games
+            List<Game> gamesToUpdate = new List<Game>();
+            int toUpdate = 0;
+            foreach (Guid id in gameIdsToUpdate)
+            {
+                Game gameToUpdate = PlayniteApi.Database.Games.FirstOrDefault(a => a.Id == id);
+                if (gameToUpdate != null)
+                {
+                    gamesToUpdate.Add(gameToUpdate);
+                }
+                toUpdate++;
+            }
+            gameIdsToUpdate.RemoveRange(0, toUpdate);
+            if (gamesToUpdate.Count > 0)
+            {
+                UpdateGames(gamesToUpdate.GroupBy(game => game.Id).Select(group => group.First()).Cast<Game>().ToList());
+            }
+        }
+
+        private void RestartTimer()
+        {
+            timer.Stop();
+            timer.Start();
+        }
+
         public void Games_ItemUpdated(object sender, ItemUpdatedEventArgs<Game> args)
         {
             if (this.LoadPluginSettings<ShareniteSettings>().keepInSync)
             {
-                List<Game> updatedGames = new List<Game>();
-                foreach (var updatedItem in args.UpdatedItems)
+                var list = args.UpdatedItems.Select(item => item.NewData).Select(game => game.Id);
+                if (list.Count() > 0)
                 {
-                    updatedGames.Add(updatedItem.NewData);
+                    gameIdsToUpdate.AddRange(list);
                 }
-                UpdateGames(updatedGames);
             }
+            RestartTimer();
         }
 
         public void Games_ItemCollectionChanged(object sender, ItemCollectionChangedEventArgs<Game> args)
@@ -157,12 +212,13 @@ namespace Sharenite
             {
                 if (args.AddedItems.Count > 0)
                 {
-                    UpdateGames(args.AddedItems);
+                    gameIdsToUpdate.AddRange(args.AddedItems.Select(game => game.Id));
                 }
                 if (args.RemovedItems.Count > 0)
                 {
-                    RemoveGames(args.RemovedItems);
+                    gameIdsToRemove.AddRange(args.RemovedItems.Select(game => game.Id));
                 }
+                RestartTimer();
             }
         }
 
@@ -206,6 +262,7 @@ namespace Sharenite
         public override void OnApplicationStopped(OnApplicationStoppedEventArgs args)
         {
             // Add code to be executed when Playnite is shutting down.
+            handleTimerUpdate();
         }
 
         public override void OnLibraryUpdated(OnLibraryUpdatedEventArgs args)
