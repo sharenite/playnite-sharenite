@@ -250,13 +250,6 @@ namespace Sharenite
         public override void OnApplicationStarted(OnApplicationStartedEventArgs args)
         {
             // Add code to be executed when Playnite is initialized.
-            if (settings.Settings.resyncAfterBigUpdate01)
-            {
-                SynchroniseGames();
-                settings.BeginEdit();
-                settings.Settings.resyncAfterBigUpdate01 = false;
-                settings.EndEdit();
-            }
         }
 
         public override void OnApplicationStopped(OnApplicationStoppedEventArgs args)

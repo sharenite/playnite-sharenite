@@ -135,7 +135,7 @@ namespace Sharenite.Services
             catch (Exception e)
             {
                 Console.Out.WriteLine("Problem reading cookies from disk: " + e.GetType());
-                return new CookieContainer();
+                throw new Exception("Problem reading cookies from disk: " + e.GetType());
             }
         }
 
