@@ -77,7 +77,7 @@ namespace Sharenite
                 },
                 new GlobalProgressOptions("Kicking off a full Sharenite resynchronisation.", true)
                 {
-                    IsIndeterminate = false
+                    IsIndeterminate = true
                 }
             );
 
@@ -97,7 +97,7 @@ namespace Sharenite
             },
                 new GlobalProgressOptions("Kicking off a Sharenite games update.", true)
                 {
-                    IsIndeterminate = false
+                    IsIndeterminate = true
                 }
             );
 
@@ -116,7 +116,7 @@ namespace Sharenite
             },
                 new GlobalProgressOptions("Kicking off a Sharenite games update.", true)
                 {
-                    IsIndeterminate = false
+                    IsIndeterminate = true
                 }
             );
 
@@ -137,7 +137,7 @@ namespace Sharenite
             },
                 new GlobalProgressOptions("Kicking off a Sharenite games update.", true)
                 {
-                    IsIndeterminate = false
+                    IsIndeterminate = true
                 }
             );
 

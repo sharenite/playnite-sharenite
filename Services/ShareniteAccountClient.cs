@@ -18,6 +18,7 @@ using System.Linq;
 using System.Net.Http;
 using Sharenite.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Sharenite.Services
 {
@@ -40,11 +41,17 @@ namespace Sharenite.Services
         private const string homepageUrl = protocol + domain + domainDev + "/";
         private const string gameListUrl = protocol + domain + domainDev + "/api/v1/games";
         private const string gameDeleteUrl = protocol + domain + domainDev + "/api/v1/games/delete";
+
+        private DefaultContractResolver contractResolver;
         public ShareniteAccountClient(Sharenite plugin, IPlayniteAPI api)
         {
             this.api = api;
             this.plugin = plugin;
             cookiesPath = Path.Combine(plugin.GetPluginUserDataPath(), "cookies.bin");
+            contractResolver = new DefaultContractResolver
+            {
+                NamingStrategy = new SnakeCaseNamingStrategy()
+            };
         }
 
         public void Login()
@@ -159,12 +166,13 @@ namespace Sharenite.Services
             }
         }
 
-        public static string ToJson(object obj, bool formatted = false)
+        public string ToJson(object obj, bool formatted = false)
         {
-            return JsonConvert.SerializeObject(obj, new JsonSerializerSettings()
+            return JsonConvert.SerializeObject(obj, new JsonSerializerSettings
             {
                 Formatting = formatted ? Formatting.Indented : Formatting.None,
                 NullValueHandling = NullValueHandling.Include,
+                ContractResolver = contractResolver,
             });
         }
 
@@ -176,61 +184,8 @@ namespace Sharenite.Services
             using (var httpClient = new HttpClient(handler))
             {
                 var games = new GamesPost();
-                games.games = new List<GamePost>();
+                games.games = api.Database.Games.ToList();
                 var gamesCount = api.Database.Games.Count;
-                args.ProgressMaxValue = gamesCount;
-                args.Text = "Synchronising games (processing 0 out of " + gamesCount + ")";
-                int index = 0;
-                foreach (var game in api.Database.Games)
-                {
-                    index++;
-                    if (index % 50 == 0)
-                    {
-                        args.CurrentProgressValue = index;
-                        args.Text = "Synchronising games (processing " + index + " out of " + gamesCount + ")";
-                    }                        
-                    var tempGame = new GamePost();
-                    tempGame.name = game.Name;
-                    tempGame.added = game.Added;
-                    tempGame.community_score = game.CommunityScore;
-                    tempGame.critic_score = game.CriticScore;
-                    tempGame.description = game.Description;
-                    tempGame.favorite = game.Favorite;
-                    tempGame.game_id = game.GameId;
-                    tempGame.game_started_script = game.GameStartedScript;
-                    tempGame.hidden = game.Hidden;
-                    tempGame.include_library_plugin_action = game.IncludeLibraryPluginAction;
-                    tempGame.install_directory = game.InstallDirectory;
-                    tempGame.is_custom_game = game.IsCustomGame;
-                    tempGame.is_installed = game.IsInstalled;
-                    tempGame.is_installing = game.IsInstalling;
-                    tempGame.is_launching = game.IsLaunching;
-                    tempGame.is_running = game.IsRunning;
-                    tempGame.is_uninstalling = game.IsUninstalling;
-                    tempGame.last_activity = game.LastActivity;
-                    tempGame.manual = game.Manual;
-                    tempGame.modified = game.Modified;
-                    tempGame.notes = game.Notes;
-                    tempGame.play_count = game.PlayCount;
-                    tempGame.playnite_id = game.Id;
-                    tempGame.playtime = game.Playtime;
-                    tempGame.plugin_id = game.PluginId;
-                    tempGame.post_script = game.PostScript;
-                    tempGame.pre_script = game.PreScript;
-                    //tempGame.release_date = game.ReleaseDate;
-                    tempGame.sorting_name = game.SortingName;
-                    tempGame.use_global_game_started_script = game.UseGlobalGameStartedScript;
-                    tempGame.use_global_post_script = game.UseGlobalPostScript;
-                    tempGame.use_global_pre_script = game.UseGlobalPreScript;
-                    tempGame.user_score = game.UserScore;
-                    tempGame.version = game.Version;
-                    games.games.Add(tempGame);
-                    if (args.CancelToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
-                }
-
                 args.Text = "Sending " + gamesCount + " game to Sharenite.";
                 var serializedData = ToJson(games);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);
@@ -267,61 +222,8 @@ namespace Sharenite.Services
             using (var httpClient = new HttpClient(handler))
             {
                 var games = new GamesPost();
-                games.games = new List<GamePost>();
+                games.games = databaseGames;
                 var gamesCount = databaseGames.Count;
-                args.ProgressMaxValue = gamesCount;
-                args.Text = "Synchronising games (processing 0 out of " + gamesCount + ")";
-                int index = 0;
-                foreach (var game in databaseGames)
-                {
-                    index++;
-                    if (index % 50 == 0)
-                    {
-                        args.CurrentProgressValue = index;
-                        args.Text = "Synchronising games (processing " + index + " out of " + gamesCount + ")";
-                    }
-                    var tempGame = new GamePost();
-                    tempGame.name = game.Name;
-                    tempGame.added = game.Added;
-                    tempGame.community_score = game.CommunityScore;
-                    tempGame.critic_score = game.CriticScore;
-                    tempGame.description = game.Description;
-                    tempGame.favorite = game.Favorite;
-                    tempGame.game_id = game.GameId;
-                    tempGame.game_started_script = game.GameStartedScript;
-                    tempGame.hidden = game.Hidden;
-                    tempGame.include_library_plugin_action = game.IncludeLibraryPluginAction;
-                    tempGame.install_directory = game.InstallDirectory;
-                    tempGame.is_custom_game = game.IsCustomGame;
-                    tempGame.is_installed = game.IsInstalled;
-                    tempGame.is_installing = game.IsInstalling;
-                    tempGame.is_launching = game.IsLaunching;
-                    tempGame.is_running = game.IsRunning;
-                    tempGame.is_uninstalling = game.IsUninstalling;
-                    tempGame.last_activity = game.LastActivity;
-                    tempGame.manual = game.Manual;
-                    tempGame.modified = game.Modified;
-                    tempGame.notes = game.Notes;
-                    tempGame.play_count = game.PlayCount;
-                    tempGame.playnite_id = game.Id;
-                    tempGame.playtime = game.Playtime;
-                    tempGame.plugin_id = game.PluginId;
-                    tempGame.post_script = game.PostScript;
-                    tempGame.pre_script = game.PreScript;
-                    //tempGame.release_date = game.ReleaseDate;
-                    tempGame.sorting_name = game.SortingName;
-                    tempGame.use_global_game_started_script = game.UseGlobalGameStartedScript;
-                    tempGame.use_global_post_script = game.UseGlobalPostScript;
-                    tempGame.use_global_pre_script = game.UseGlobalPreScript;
-                    tempGame.user_score = game.UserScore;
-                    tempGame.version = game.Version;
-                    games.games.Add(tempGame);
-                    if (args.CancelToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
-                }
-
                 args.Text = "Sending " + gamesCount + " games to Sharenite.";
                 var serializedData = ToJson(games);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);
@@ -359,61 +261,8 @@ namespace Sharenite.Services
             using (var httpClient = new HttpClient(handler))
             {
                 var games = new GamesPost();
-                games.games = new List<GamePost>();
-                var gamesCount = databaseGames.Count;
-                args.ProgressMaxValue = gamesCount;
-                args.Text = "Collecting games to remove (processing 0 out of " + gamesCount + ")";
-                int index = 0;
-                foreach (var game in databaseGames)
-                {
-                    index++;
-                    if (index % 50 == 0)
-                    {
-                        args.CurrentProgressValue = index;
-                        args.Text = "Collecting games to remove (processing " + index + " out of " + gamesCount + ")";
-                    }
-                    var tempGame = new GamePost();
-                    tempGame.name = game.Name;
-                    tempGame.added = game.Added;
-                    tempGame.community_score = game.CommunityScore;
-                    tempGame.critic_score = game.CriticScore;
-                    tempGame.description = game.Description;
-                    tempGame.favorite = game.Favorite;
-                    tempGame.game_id = game.GameId;
-                    tempGame.game_started_script = game.GameStartedScript;
-                    tempGame.hidden = game.Hidden;
-                    tempGame.include_library_plugin_action = game.IncludeLibraryPluginAction;
-                    tempGame.install_directory = game.InstallDirectory;
-                    tempGame.is_custom_game = game.IsCustomGame;
-                    tempGame.is_installed = game.IsInstalled;
-                    tempGame.is_installing = game.IsInstalling;
-                    tempGame.is_launching = game.IsLaunching;
-                    tempGame.is_running = game.IsRunning;
-                    tempGame.is_uninstalling = game.IsUninstalling;
-                    tempGame.last_activity = game.LastActivity;
-                    tempGame.manual = game.Manual;
-                    tempGame.modified = game.Modified;
-                    tempGame.notes = game.Notes;
-                    tempGame.play_count = game.PlayCount;
-                    tempGame.playnite_id = game.Id;
-                    tempGame.playtime = game.Playtime;
-                    tempGame.plugin_id = game.PluginId;
-                    tempGame.post_script = game.PostScript;
-                    tempGame.pre_script = game.PreScript;
-                    //tempGame.release_date = game.ReleaseDate;
-                    tempGame.sorting_name = game.SortingName;
-                    tempGame.use_global_game_started_script = game.UseGlobalGameStartedScript;
-                    tempGame.use_global_post_script = game.UseGlobalPostScript;
-                    tempGame.use_global_pre_script = game.UseGlobalPreScript;
-                    tempGame.user_score = game.UserScore;
-                    tempGame.version = game.Version;
-                    games.games.Add(tempGame);
-                    if (args.CancelToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
-                }
-
+                games.games = databaseGames;
+                var gamesCount = databaseGames.Count;    
                 args.Text = "Removing " + gamesCount + " games from Sharenite.";
                 var serializedData = ToJson(games);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);
@@ -450,8 +299,8 @@ namespace Sharenite.Services
             using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
             using (var httpClient = new HttpClient(handler))
             {
-                var game = new GamePut();
-                game.game = new GamePost();
+                var game = new GamePutOld();
+                game.game = new GamePostOld();
                 args.Text = "Reading game playtime";
                 game.game.name = databaseGame.Name;
                 game.game.added = databaseGame.Added;
@@ -492,7 +341,7 @@ namespace Sharenite.Services
                     return;
                 }
 
-                args.Text = "Sending playtime game to Sharenite.";
+                args.Text = "Sending Playtime game to Sharenite.";
                 var serializedData = ToJson(game);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);
                 var byteContent = new ByteArrayContent(buffer);

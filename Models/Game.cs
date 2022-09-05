@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Sharenite.Models
 {
-    class GamePost
+    class GamePostOld
     {
         public string name { get; set; }
         public DateTime? added { get; set; }
@@ -44,24 +44,29 @@ namespace Sharenite.Models
         public string version { get; set; }
     }
 
-    class Game : GamePost
+    class GameOld : GamePostOld
     {
         public int? id { get; set; }
     }
 
-    class GamesPost
+    class GamesPostOld
     {
-        public List<GamePost> games;
+        public List<GamePostOld> games;
     }
 
-    class GamePut
+    class GamesPost
     {
-        public GamePost game;
+        public List<Playnite.SDK.Models.Game> games;
+    }
+
+    class GamePutOld
+    {
+        public GamePostOld game;
     }
 
 
     class Games
     {
-        public List<Game> games;
+        public List<GameOld> games;
     }
 }
