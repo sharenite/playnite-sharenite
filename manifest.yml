@@ -1,5 +1,11 @@
 AddonId: Sharenite_62d53f25-4e62-4f27-a49e-89e73cb1fd48
 Packages:
+  - Version: 0.7
+    RequiredApiVersion: 6.2.0
+    ReleaseDate: 2022-09-05
+    PackageUrl: https://github.com/sharenite/playnite-sharenite/releases/download/0.7/Sharenite_0_7.pext
+    Changelog:
+      - Added synchronization of tags, platforms, sources, completion statuses and categories
   - Version: 0.6
     RequiredApiVersion: 6.2.0
     ReleaseDate: 2022-09-04
