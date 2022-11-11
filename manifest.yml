@@ -1,5 +1,11 @@
 AddonId: Sharenite_62d53f25-4e62-4f27-a49e-89e73cb1fd48
 Packages:
+  - Version: 0.8
+    RequiredApiVersion: 6.2.0
+    ReleaseDate: 2022-11-11
+    PackageUrl: https://github.com/sharenite/playnite-sharenite/releases/download/0.8/Sharenite_0_8.pext
+    Changelog:
+      - Added possibility to turn off progress dialog
   - Version: 0.7
     RequiredApiVersion: 6.2.0
     ReleaseDate: 2022-09-05
