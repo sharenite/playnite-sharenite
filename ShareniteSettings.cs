@@ -13,8 +13,10 @@ namespace Sharenite
     public class ShareniteSettings : ObservableObject
     {
         public bool keepInSync = true;
+        public bool showProgress = true;
 
         public bool KeepInSync { get => keepInSync; set => SetValue(ref keepInSync, value); }
+        public bool ShowProgress { get => showProgress; set => SetValue(ref showProgress, value); }
         // Playnite serializes settings object to a JSON object and saves it as text file.
         // If you want to exclude some property from being saved then use `JsonDontSerialize` ignore attribute.
         //[DontSerialize]

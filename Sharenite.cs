@@ -30,7 +30,7 @@ namespace Sharenite
             api.Database.Games.ItemCollectionChanged += Games_ItemCollectionChanged;
             api.Database.Games.ItemUpdated += Games_ItemUpdated;
             timer = new System.Timers.Timer();
-            timer.Elapsed += (_,__) => handleTimerUpdate();
+            timer.Elapsed += (_, __) => handleTimerUpdate();
             timer.AutoReset = false;
             timer.Interval = 5000;
             gameIdsToRemove = new List<Guid>();
@@ -62,7 +62,7 @@ namespace Sharenite
                     Description = "Synchronize game with Sharenite",
                     Action = a =>
                     {
-                        UpdateGames(args.Games);
+                        UpdateGames(args.Games, true);
                     }
                 }
             };
@@ -88,29 +88,45 @@ namespace Sharenite
             }
         }
 
-        public void UpdateGames(List<Game> games)
+        public void UpdateGames(List<Game> games, bool overrideShowProgress = false)
         {
             var clientApi = new ShareniteAccountClient(this, PlayniteApi);
-            var scanRes = dialogs.ActivateGlobalProgress((args) =>
+            if (LoadPluginSettings<ShareniteSettings>().showProgress || overrideShowProgress)
             {
-                clientApi.UpdateGames(args, games).GetAwaiter().GetResult();
-            },
-                new GlobalProgressOptions("Kicking off a Sharenite games update.", true)
+                var scanRes = dialogs.ActivateGlobalProgress((args) =>
                 {
-                    IsIndeterminate = true
-                }
-            );
+                    clientApi.UpdateGames(args, games).GetAwaiter().GetResult();
+                },
+                    new GlobalProgressOptions("Kicking off a Sharenite games update.", true)
+                    {
+                        IsIndeterminate = true
+                    }
+                );
 
-            if (scanRes.Error != null)
+                if (scanRes.Error != null)
+                {
+                    logger.Error(scanRes.Error, "Sharenite synchronization failed.");
+                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                }
+            }
+            else
             {
-                logger.Error(scanRes.Error, "Sharenite synchronization failed.");
-                dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                try
+                {
+                    clientApi.UpdateGames(games).GetAwaiter().GetResult();
+                }
+                catch (Exception e)
+                {
+                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + e.Message, "");
+                }
             }
         }
-        public void RemoveGames(List<Game> games)
+        public void RemoveGames(List<Game> games, bool overrideShowProgress = false)
         {
             var clientApi = new ShareniteAccountClient(this, PlayniteApi);
-            var scanRes = dialogs.ActivateGlobalProgress((args) =>
+            if (LoadPluginSettings<ShareniteSettings>().showProgress || overrideShowProgress)
+            {
+                var scanRes = dialogs.ActivateGlobalProgress((args) =>
             {
                 clientApi.DeleteGames(args, games).GetAwaiter().GetResult();
             },
@@ -120,36 +136,62 @@ namespace Sharenite
                 }
             );
 
-            if (scanRes.Error != null)
+                if (scanRes.Error != null)
+                {
+                    logger.Error(scanRes.Error, "Sharenite synchronization failed.");
+                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                }
+            }
+            else
             {
-                logger.Error(scanRes.Error, "Sharenite synchronization failed.");
-                dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                try
+                {
+                    clientApi.DeleteGames(games).GetAwaiter().GetResult();
+                }
+                catch (Exception e)
+                {
+                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + e.Message, "");
+                }
             }
         }
 
 
-        public void UpdateGame(Game game)
+        public void UpdateGame(Game game, bool overrideShowProgress = false)
         {
             var clientApi = new ShareniteAccountClient(this, PlayniteApi);
-            var scanRes = dialogs.ActivateGlobalProgress((args) =>
+            if (LoadPluginSettings<ShareniteSettings>().showProgress || overrideShowProgress)
             {
-                clientApi.UpdateGame(args, game).GetAwaiter().GetResult();
-            },
-                new GlobalProgressOptions("Kicking off a Sharenite games update.", true)
-                {
-                    IsIndeterminate = true
-                }
-            );
+                var scanRes = dialogs.ActivateGlobalProgress((args) =>
+        {
+            clientApi.UpdateGame(args, game).GetAwaiter().GetResult();
+        },
+            new GlobalProgressOptions("Kicking off a Sharenite games update.", true)
+            {
+                IsIndeterminate = true
+            }
+        );
 
-            if (scanRes.Error != null)
+                if (scanRes.Error != null)
+                {
+                    logger.Error(scanRes.Error, "Sharenite synchronization failed.");
+                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                }
+            }
+            else
             {
-                logger.Error(scanRes.Error, "Sharenite synchronization failed.");
-                dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                try
+                {
+                    clientApi.UpdateGame(game).GetAwaiter().GetResult();
+                }
+                catch (Exception e)
+                {
+                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + e.Message, "");
+                }
             }
         }
 
-        private void handleTimerUpdate()
-        {            
+        private void handleTimerUpdate(bool overrideShowProgress = false)
+        {
             timer.Stop();
 
             // Remove pending games
@@ -165,7 +207,7 @@ namespace Sharenite
             gameIdsToRemove.RemoveRange(0, toRemove);
             if (gamesToRemove.Count > 0)
             {
-                RemoveGames(gamesToRemove.GroupBy(game => game.Id).Select(group => group.First()).Cast<Game>().ToList());
+                RemoveGames(gamesToRemove.GroupBy(game => game.Id).Select(group => group.First()).Cast<Game>().ToList(), overrideShowProgress);
             }
 
             // Update pending games
@@ -183,7 +225,7 @@ namespace Sharenite
             gameIdsToUpdate.RemoveRange(0, toUpdate);
             if (gamesToUpdate.Count > 0)
             {
-                UpdateGames(gamesToUpdate.GroupBy(game => game.Id).Select(group => group.First()).Cast<Game>().ToList());
+                UpdateGames(gamesToUpdate.GroupBy(game => game.Id).Select(group => group.First()).Cast<Game>().ToList(), overrideShowProgress);
             }
         }
 
@@ -255,7 +297,7 @@ namespace Sharenite
         public override void OnApplicationStopped(OnApplicationStoppedEventArgs args)
         {
             // Add code to be executed when Playnite is shutting down.
-            handleTimerUpdate();
+            handleTimerUpdate(true);
         }
 
         public override void OnLibraryUpdated(OnLibraryUpdatedEventArgs args)

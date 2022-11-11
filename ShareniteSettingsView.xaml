@@ -35,9 +35,13 @@
                 </TextBlock.Style>
             </TextBlock>
         </StackPanel>
-        <CheckBox Name="CheckPSNMigration"
+        <CheckBox Name="KeepInSync"
                   IsChecked="{Binding Settings.KeepInSync}"
                   Content="Keep library in sync"
+                  Margin="0,4,0,0"/>
+        <CheckBox Name="ShowProgress"
+                  IsChecked="{Binding Settings.ShowProgress}"
+                  Content="Show progress on each update"
                   Margin="0,4,0,0"/>
     </StackPanel>
 </UserControl>

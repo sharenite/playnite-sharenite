@@ -186,7 +186,7 @@ namespace Sharenite.Services
                 var games = new GamesPost();
                 games.games = api.Database.Games.ToList();
                 var gamesCount = api.Database.Games.Count;
-                args.Text = "Sending " + gamesCount + " game to Sharenite.";
+                args.Text = "Sending " + gamesCount + " game(s) to Sharenite.";
                 var serializedData = ToJson(games);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);
                 var byteContent = new ByteArrayContent(buffer);
@@ -202,7 +202,8 @@ namespace Sharenite.Services
                 {
                     ErrorGeneric errorGeneric;
                     Serialization.TryFromJson(strResponse, out errorGeneric);
-                    if (errorGeneric != null) {
+                    if (errorGeneric != null)
+                    {
                         throw new Exception(errorGeneric.error);
                     }
                     else
@@ -253,6 +254,43 @@ namespace Sharenite.Services
             return;
         }
 
+        public async Task UpdateGames(List<Playnite.SDK.Models.Game> databaseGames)
+        {
+            var cookieContainer = ReadCookiesFromDisk();
+            using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
+            using (var httpClient = new HttpClient(handler))
+            {
+                var games = new GamesPost();
+                games.games = databaseGames;
+                var gamesCount = databaseGames.Count;
+                var serializedData = ToJson(games);
+                var buffer = Encoding.UTF8.GetBytes(serializedData);
+                var byteContent = new ByteArrayContent(buffer);
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                var resp = httpClient.PutAsync(gameListUrl, byteContent).GetAwaiter().GetResult();
+                var strResponse = await resp.Content.ReadAsStringAsync();
+                if (resp.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    throw new Exception("User is not authenticated.");
+                }
+                else if (resp.StatusCode != HttpStatusCode.Accepted)
+                {
+                    ErrorGeneric errorGeneric;
+                    Serialization.TryFromJson(strResponse, out errorGeneric);
+                    if (errorGeneric != null)
+                    {
+                        throw new Exception(errorGeneric.error);
+                    }
+                    else
+                    {
+                        throw new Exception(strResponse);
+                    }
+                }
+            }
+            return;
+        }
+
         public async Task DeleteGames(GlobalProgressActionArgs args, List<Playnite.SDK.Models.Game> databaseGames)
         {
             args.Text = "Reading authentication.";
@@ -262,8 +300,45 @@ namespace Sharenite.Services
             {
                 var games = new GamesPost();
                 games.games = databaseGames;
-                var gamesCount = databaseGames.Count;    
+                var gamesCount = databaseGames.Count;
                 args.Text = "Removing " + gamesCount + " games from Sharenite.";
+                var serializedData = ToJson(games);
+                var buffer = Encoding.UTF8.GetBytes(serializedData);
+                var byteContent = new ByteArrayContent(buffer);
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                var resp = httpClient.PutAsync(gameDeleteUrl, byteContent).GetAwaiter().GetResult();
+                var strResponse = await resp.Content.ReadAsStringAsync();
+                if (resp.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    throw new Exception("User is not authenticated.");
+                }
+                else if (resp.StatusCode != HttpStatusCode.Accepted)
+                {
+                    ErrorGeneric errorGeneric;
+                    Serialization.TryFromJson(strResponse, out errorGeneric);
+                    if (errorGeneric != null)
+                    {
+                        throw new Exception(errorGeneric.error);
+                    }
+                    else
+                    {
+                        throw new Exception(strResponse);
+                    }
+                }
+            }
+            return;
+        }
+
+        public async Task DeleteGames(List<Playnite.SDK.Models.Game> databaseGames)
+        {
+            var cookieContainer = ReadCookiesFromDisk();
+            using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
+            using (var httpClient = new HttpClient(handler))
+            {
+                var games = new GamesPost();
+                games.games = databaseGames;
+                var gamesCount = databaseGames.Count;
                 var serializedData = ToJson(games);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);
                 var byteContent = new ByteArrayContent(buffer);
@@ -370,6 +445,77 @@ namespace Sharenite.Services
             return;
         }
 
+        public async Task UpdateGame(Playnite.SDK.Models.Game databaseGame)
+        {
+            var cookieContainer = ReadCookiesFromDisk();
+            using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
+            using (var httpClient = new HttpClient(handler))
+            {
+                var game = new GamePutOld();
+                game.game = new GamePostOld();
+                game.game.name = databaseGame.Name;
+                game.game.added = databaseGame.Added;
+                game.game.community_score = databaseGame.CommunityScore;
+                game.game.critic_score = databaseGame.CriticScore;
+                game.game.description = databaseGame.Description;
+                game.game.favorite = databaseGame.Favorite;
+                game.game.game_id = databaseGame.GameId;
+                game.game.game_started_script = databaseGame.GameStartedScript;
+                game.game.hidden = databaseGame.Hidden;
+                game.game.include_library_plugin_action = databaseGame.IncludeLibraryPluginAction;
+                game.game.install_directory = databaseGame.InstallDirectory;
+                game.game.is_custom_game = databaseGame.IsCustomGame;
+                game.game.is_installed = databaseGame.IsInstalled;
+                game.game.is_installing = databaseGame.IsInstalling;
+                game.game.is_launching = databaseGame.IsLaunching;
+                game.game.is_running = databaseGame.IsRunning;
+                game.game.is_uninstalling = databaseGame.IsUninstalling;
+                game.game.last_activity = databaseGame.LastActivity;
+                game.game.manual = databaseGame.Manual;
+                game.game.modified = databaseGame.Modified;
+                game.game.notes = databaseGame.Notes;
+                game.game.play_count = databaseGame.PlayCount;
+                game.game.playnite_id = databaseGame.Id;
+                game.game.playtime = databaseGame.Playtime;
+                game.game.plugin_id = databaseGame.PluginId;
+                game.game.post_script = databaseGame.PostScript;
+                game.game.pre_script = databaseGame.PreScript;
+                //tempGame.release_date = game.ReleaseDate;
+                game.game.sorting_name = databaseGame.SortingName;
+                game.game.use_global_game_started_script = databaseGame.UseGlobalGameStartedScript;
+                game.game.use_global_post_script = databaseGame.UseGlobalPostScript;
+                game.game.use_global_pre_script = databaseGame.UseGlobalPreScript;
+                game.game.user_score = databaseGame.UserScore;
+                game.game.version = databaseGame.Version;
+
+                var serializedData = ToJson(game);
+                var buffer = Encoding.UTF8.GetBytes(serializedData);
+                var byteContent = new ByteArrayContent(buffer);
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                var resp = httpClient.PutAsync(gameListUrl + "/" + databaseGame.Id, byteContent).GetAwaiter().GetResult();
+                var strResponse = await resp.Content.ReadAsStringAsync();
+                if (resp.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    throw new Exception("User is not authenticated.");
+                }
+                else if (resp.StatusCode != HttpStatusCode.Accepted)
+                {
+                    ErrorGeneric errorGeneric;
+                    Serialization.TryFromJson(strResponse, out errorGeneric);
+                    if (errorGeneric != null)
+                    {
+                        throw new Exception(errorGeneric.error);
+                    }
+                    else
+                    {
+                        throw new Exception(strResponse);
+                    }
+                }
+            }
+            return;
+        }
+
         public async Task<bool> GetIsUserLoggedIn()
         {
             if (!File.Exists(cookiesPath))
@@ -392,7 +538,7 @@ namespace Sharenite.Services
 
                     //if (Serialization.TryFromJson<List<Game>>(strResponse, out var games) && games != null)
                     //{
-                        return true;
+                    return true;
                     //}
                 }
                 return false;
