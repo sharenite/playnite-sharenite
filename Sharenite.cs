@@ -84,7 +84,10 @@ namespace Sharenite
             if (scanRes.Error != null)
             {
                 logger.Error(scanRes.Error, "Sharenite synchronization failed.");
-                dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                if (LoadPluginSettings<ShareniteSettings>().showErrors)
+                {
+                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                }
             }
         }
 
@@ -106,7 +109,10 @@ namespace Sharenite
                 if (scanRes.Error != null)
                 {
                     logger.Error(scanRes.Error, "Sharenite synchronization failed.");
-                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                    if (LoadPluginSettings<ShareniteSettings>().showErrors)
+                    {
+                        dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.ToString(), "");
+                    }
                 }
             }
             else
@@ -117,7 +123,10 @@ namespace Sharenite
                 }
                 catch (Exception e)
                 {
-                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + e.Message, "");
+                    if (LoadPluginSettings<ShareniteSettings>().showErrors)
+                    {
+                        dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + e.ToString(), "");
+                    }
                 }
             }
         }
@@ -139,7 +148,11 @@ namespace Sharenite
                 if (scanRes.Error != null)
                 {
                     logger.Error(scanRes.Error, "Sharenite synchronization failed.");
-                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+
+                    if (LoadPluginSettings<ShareniteSettings>().showErrors)
+                    {
+                        dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                    }
                 }
             }
             else
@@ -150,7 +163,10 @@ namespace Sharenite
                 }
                 catch (Exception e)
                 {
-                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + e.Message, "");
+                    if (LoadPluginSettings<ShareniteSettings>().showErrors)
+                    {
+                        dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + e.Message, "");
+                    }
                 }
             }
         }
@@ -174,7 +190,11 @@ namespace Sharenite
                 if (scanRes.Error != null)
                 {
                     logger.Error(scanRes.Error, "Sharenite synchronization failed.");
-                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+
+                    if (LoadPluginSettings<ShareniteSettings>().showErrors)
+                    {
+                        dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + scanRes.Error.Message, "");
+                    }
                 }
             }
             else
@@ -185,7 +205,11 @@ namespace Sharenite
                 }
                 catch (Exception e)
                 {
-                    dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + e.Message, "");
+
+                    if (LoadPluginSettings<ShareniteSettings>().showErrors)
+                    {
+                        dialogs.ShowErrorMessage("Sharenite synchronization failed." + "\n" + e.Message, "");
+                    }
                 }
             }
         }

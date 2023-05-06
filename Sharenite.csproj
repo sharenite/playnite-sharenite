@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\Error.cs" />
+    <Compile Include="Models\User.cs" />
     <Compile Include="Models\Game.cs" />
     <Compile Include="Services\ShareniteAccountClient.cs" />
     <Compile Include="Sharenite.cs" />

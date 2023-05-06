@@ -41,6 +41,7 @@ namespace Sharenite.Services
         private const string homepageUrl = protocol + domain + domainDev + "/";
         private const string gameListUrl = protocol + domain + domainDev + "/api/v1/games";
         private const string gameDeleteUrl = protocol + domain + domainDev + "/api/v1/games/delete";
+        private const string userCheckUrl = protocol + domain + domainDev + "/api/v1/users/me";
 
         private DefaultContractResolver contractResolver;
         public ShareniteAccountClient(Sharenite plugin, IPlayniteAPI api)
@@ -529,17 +530,24 @@ namespace Sharenite.Services
                 using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
                 using (var httpClient = new HttpClient(handler))
                 {
-                    var resp = httpClient.GetAsync(gameListUrl).GetAwaiter().GetResult();
+                    var resp = httpClient.GetAsync(userCheckUrl).GetAwaiter().GetResult();
+
+                    if (resp.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        return false;
+                    }
+
                     var strResponse = await resp.Content.ReadAsStringAsync();
+
                     if (Serialization.TryFromJson<ErrorUnathorized>(strResponse, out var error) && error.error == "401 Forbidden")
                     {
                         return false;
                     }
 
-                    //if (Serialization.TryFromJson<List<Game>>(strResponse, out var games) && games != null)
-                    //{
-                    return true;
-                    //}
+                    if (Serialization.TryFromJson<User>(strResponse, out var user) && user != null)
+                    {
+                        return true;
+                    }
                 }
                 return false;
             }

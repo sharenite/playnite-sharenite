@@ -19,16 +19,16 @@
                     </PriorityBinding>
                 </TextBlock.Tag>
                 <TextBlock.Style>
-                    <Style TargetType="TextBlock">
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
                         <Style.Triggers>
                             <Trigger Property="Tag" Value="{StaticResource True}">
-                                <Setter Property="Text" Value="Logged In" />
+                                <Setter Property="Text" Value="{DynamicResource LOCLoggedIn}" />
                             </Trigger>
                             <Trigger Property="Tag" Value="{StaticResource False}">
-                                <Setter Property="Text" Value="Not Logged In" />
+                                <Setter Property="Text" Value="{DynamicResource LOCNotLoggedIn}" />
                             </Trigger>
                             <Trigger Property="Tag" Value="{x:Null}">
-                                <Setter Property="Text" Value="Checking" />
+                                <Setter Property="Text" Value="{DynamicResource LOCLoginChecking}" />
                             </Trigger>
                         </Style.Triggers>
                     </Style>
@@ -42,6 +42,10 @@
         <CheckBox Name="ShowProgress"
                   IsChecked="{Binding Settings.ShowProgress}"
                   Content="Show progress on each update"
+                  Margin="0,4,0,0"/>
+        <CheckBox x:Name="ShowErrors"
+            IsChecked="{Binding Settings.ShowErrors}"
+            Content="Show error pop-ups"
                   Margin="0,4,0,0"/>
     </StackPanel>
 </UserControl>
