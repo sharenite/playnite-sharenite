@@ -1,5 +1,12 @@
 AddonId: Sharenite_62d53f25-4e62-4f27-a49e-89e73cb1fd48
 Packages:
+  - Version: 0.9
+    RequiredApiVersion: 6.9.0
+    ReleaseDate: 2023-05-06
+    PackageUrl: https://github.com/sharenite/playnite-sharenite/releases/download/0.9/Sharenite_0_9.pext
+    Changelog:
+      - Added possibility to turn off error dialogs
+      - Changed authentication check endpoint
   - Version: 0.8
     RequiredApiVersion: 6.2.0
     ReleaseDate: 2022-11-11
