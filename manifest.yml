@@ -1,5 +1,12 @@
 AddonId: Sharenite_62d53f25-4e62-4f27-a49e-89e73cb1fd48
 Packages:
+  - Version: 0.10
+    RequiredApiVersion: 6.9.0
+    ReleaseDate: 2026-03-01
+    PackageUrl: https://github.com/sharenite/playnite-sharenite/releases/download/0.10/Sharenite_0_1.pext
+    Changelog:
+      - Extends HTTP OK handling to all 2xx statuses
+      - Prepares compatibility with non-www sharenite.link domain
   - Version: 0.9
     RequiredApiVersion: 6.9.0
     ReleaseDate: 2023-05-06
