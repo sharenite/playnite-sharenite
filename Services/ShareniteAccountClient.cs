@@ -24,24 +24,21 @@ namespace Sharenite.Services
 {
     class ShareniteAccountClient
     {
+        // DEV
+        // private const string BaseUrl = "https://localhost:3000";
+        // PROD
+        private const string BaseUrl = "https://www.sharenite.link";
+        private const string AlternateDomain = "sharenite.link";
         private static readonly ILogger logger = LogManager.GetLogger();
         private IPlayniteAPI api;
         private readonly string cookiesPath;
         private readonly Sharenite plugin;
-        // DEV
-        //private const string protocol = "http://";
-        //private const string domain = "localhost";
-        //private const string domainDev = ":3000";
-        // PROD
-        private const string protocol = "https://";
-        private const string domain = "www.sharenite.link";
-        private const string domainDev = "";
-        // URLs
-        private const string loginUrl = protocol + domain + domainDev + "/users/sign_in";
-        private const string homepageUrl = protocol + domain + domainDev + "/";
-        private const string gameListUrl = protocol + domain + domainDev + "/api/v1/games";
-        private const string gameDeleteUrl = protocol + domain + domainDev + "/api/v1/games/delete";
-        private const string userCheckUrl = protocol + domain + domainDev + "/api/v1/users/me";
+        private readonly string cookieDomain;
+        private readonly string loginUrl;
+        private readonly string homepageUrl;
+        private readonly string gameListUrl;
+        private readonly string gameDeleteUrl;
+        private readonly string userCheckUrl;
 
         private DefaultContractResolver contractResolver;
         public ShareniteAccountClient(Sharenite plugin, IPlayniteAPI api)
@@ -49,6 +46,13 @@ namespace Sharenite.Services
             this.api = api;
             this.plugin = plugin;
             cookiesPath = Path.Combine(plugin.GetPluginUserDataPath(), "cookies.bin");
+            var normalizedBaseUrl = BaseUrl.TrimEnd('/');
+            cookieDomain = new Uri(normalizedBaseUrl).Host;
+            loginUrl = normalizedBaseUrl + "/users/sign_in";
+            homepageUrl = normalizedBaseUrl + "/";
+            gameListUrl = normalizedBaseUrl + "/api/v1/games";
+            gameDeleteUrl = normalizedBaseUrl + "/api/v1/games/delete";
+            userCheckUrl = normalizedBaseUrl + "/api/v1/users/me";
             contractResolver = new DefaultContractResolver
             {
                 NamingStrategy = new SnakeCaseNamingStrategy()
@@ -65,14 +69,15 @@ namespace Sharenite.Services
                 view.LoadingChanged += (s, e) =>
                 {
                     var address = view.GetCurrentAddress();
-                    if (address.Equals(homepageUrl))
+                    if (IsLoginCompletedAddress(address))
                     {
                         loggedIn = true;
                         view.Close();
                     }
                 };
 
-                view.DeleteDomainCookies(domain);
+                view.DeleteDomainCookies(cookieDomain);
+                view.DeleteDomainCookies(AlternateDomain);
                 view.Navigate(loginUrl);
                 view.OpenDialog();
             }
@@ -97,7 +102,7 @@ namespace Sharenite.Services
             var cookieContainer = new CookieContainer();
             foreach (var cookie in cookies)
             {
-                if (cookie.Domain == domain)
+                if (DomainMatches(cookie.Domain, cookieDomain))
                 {
                     cookieContainer.Add(new Cookie(cookie.Name, cookie.Value, cookie.Path, cookie.Domain));
                 }
@@ -199,7 +204,7 @@ namespace Sharenite.Services
                 {
                     throw new Exception("User is not authenticated.");
                 }
-                else if (resp.StatusCode != HttpStatusCode.Accepted)
+                else if (!resp.IsSuccessStatusCode)
                 {
                     ErrorGeneric errorGeneric;
                     Serialization.TryFromJson(strResponse, out errorGeneric);
@@ -238,7 +243,7 @@ namespace Sharenite.Services
                 {
                     throw new Exception("User is not authenticated.");
                 }
-                else if (resp.StatusCode != HttpStatusCode.Accepted)
+                else if (!resp.IsSuccessStatusCode)
                 {
                     ErrorGeneric errorGeneric;
                     Serialization.TryFromJson(strResponse, out errorGeneric);
@@ -275,7 +280,7 @@ namespace Sharenite.Services
                 {
                     throw new Exception("User is not authenticated.");
                 }
-                else if (resp.StatusCode != HttpStatusCode.Accepted)
+                else if (!resp.IsSuccessStatusCode)
                 {
                     ErrorGeneric errorGeneric;
                     Serialization.TryFromJson(strResponse, out errorGeneric);
@@ -314,7 +319,7 @@ namespace Sharenite.Services
                 {
                     throw new Exception("User is not authenticated.");
                 }
-                else if (resp.StatusCode != HttpStatusCode.Accepted)
+                else if (!resp.IsSuccessStatusCode)
                 {
                     ErrorGeneric errorGeneric;
                     Serialization.TryFromJson(strResponse, out errorGeneric);
@@ -351,7 +356,7 @@ namespace Sharenite.Services
                 {
                     throw new Exception("User is not authenticated.");
                 }
-                else if (resp.StatusCode != HttpStatusCode.Accepted)
+                else if (!resp.IsSuccessStatusCode)
                 {
                     ErrorGeneric errorGeneric;
                     Serialization.TryFromJson(strResponse, out errorGeneric);
@@ -429,7 +434,7 @@ namespace Sharenite.Services
                 {
                     throw new Exception("User is not authenticated.");
                 }
-                else if (resp.StatusCode != HttpStatusCode.Accepted)
+                else if (!resp.IsSuccessStatusCode)
                 {
                     ErrorGeneric errorGeneric;
                     Serialization.TryFromJson(strResponse, out errorGeneric);
@@ -500,7 +505,7 @@ namespace Sharenite.Services
                 {
                     throw new Exception("User is not authenticated.");
                 }
-                else if (resp.StatusCode != HttpStatusCode.Accepted)
+                else if (!resp.IsSuccessStatusCode)
                 {
                     ErrorGeneric errorGeneric;
                     Serialization.TryFromJson(strResponse, out errorGeneric);
@@ -556,6 +561,54 @@ namespace Sharenite.Services
                 logger.Error(e, "Failed to check if user is authenticated into Sharenite.");
                 return false;
             }
+        }
+
+        private static bool DomainMatches(string sourceDomain, string expectedHost)
+        {
+            if (string.IsNullOrWhiteSpace(sourceDomain) || string.IsNullOrWhiteSpace(expectedHost))
+            {
+                return false;
+            }
+
+            var normalizedSource = sourceDomain.TrimStart('.');
+            if (string.Equals(normalizedSource, expectedHost, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(normalizedSource, AlternateDomain, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (normalizedSource.EndsWith("." + expectedHost, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return normalizedSource.EndsWith("." + AlternateDomain, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsLoginCompletedAddress(string address)
+        {
+            if (!Uri.TryCreate(address, UriKind.Absolute, out var uri))
+            {
+                return false;
+            }
+
+            if (!(uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+            {
+                return false;
+            }
+
+            if (!(string.Equals(uri.Host, cookieDomain, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(uri.Host, AlternateDomain, StringComparison.OrdinalIgnoreCase)))
+            {
+                return false;
+            }
+
+            var path = uri.AbsolutePath?.TrimEnd('/') ?? string.Empty;
+            return !string.Equals(path, "/users/sign_in", StringComparison.OrdinalIgnoreCase);
         }
 
         private void TryRefreshCookies()
