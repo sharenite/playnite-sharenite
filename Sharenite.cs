@@ -55,14 +55,16 @@ namespace Sharenite
 
         public override IEnumerable<GameMenuItem> GetGameMenuItems(GetGameMenuItemsArgs args)
         {
+            var excludeHidden = LoadPluginSettings<ShareniteSettings>().ExcludeHidden;
             return new List<GameMenuItem>
             {
                 new GameMenuItem
                 {
                     Description = "Synchronize game with Sharenite",
-                    Action = a =>
+
+                     Action = a =>
                     {
-                        UpdateGames(args.Games, true);
+                        UpdateGames(args.Games.Where(e => !excludeHidden || !e.Hidden).ToList(), true);
                     }
                 }
             };
@@ -71,9 +73,10 @@ namespace Sharenite
         public void SynchroniseGames()
         {
             var clientApi = new ShareniteAccountClient(this, PlayniteApi);
+            var excludeHidden = LoadPluginSettings<ShareniteSettings>().ExcludeHidden;
             var scanRes = dialogs.ActivateGlobalProgress((args) =>
                 {
-                    clientApi.SynchroniseGames(args).GetAwaiter().GetResult();
+                    clientApi.SynchroniseGames(args, excludeHidden).GetAwaiter().GetResult();
                 },
                 new GlobalProgressOptions("Kicking off a full Sharenite resynchronisation.", true)
                 {
@@ -218,6 +221,8 @@ namespace Sharenite
         {
             timer.Stop();
 
+            var excludeHidden = LoadPluginSettings<ShareniteSettings>().ExcludeHidden;
+
             // Remove pending games
             List<Game> gamesToRemove = new List<Game>();
             int toRemove = 0;
@@ -240,7 +245,7 @@ namespace Sharenite
             foreach (Guid id in gameIdsToUpdate)
             {
                 Game gameToUpdate = PlayniteApi.Database.Games.FirstOrDefault(a => a.Id == id);
-                if (gameToUpdate != null)
+                if (gameToUpdate != null && (!excludeHidden || !gameToUpdate.Hidden))
                 {
                     gamesToUpdate.Add(gameToUpdate);
                 }

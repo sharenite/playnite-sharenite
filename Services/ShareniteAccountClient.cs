@@ -182,7 +182,7 @@ namespace Sharenite.Services
             });
         }
 
-        public async Task SynchroniseGames(GlobalProgressActionArgs args)
+        public async Task SynchroniseGames(GlobalProgressActionArgs args, bool excludeHidden)
         {
             args.Text = "Reading authentication.";
             var cookieContainer = ReadCookiesFromDisk();
@@ -190,8 +190,8 @@ namespace Sharenite.Services
             using (var httpClient = new HttpClient(handler))
             {
                 var games = new GamesPost();
-                games.games = api.Database.Games.ToList();
-                var gamesCount = api.Database.Games.Count;
+                games.games = api.Database.Games.Where(e => !excludeHidden || !e.Hidden).ToList();
+                var gamesCount = games.games.Count;
                 args.Text = "Sending " + gamesCount + " game(s) to Sharenite.";
                 var serializedData = ToJson(games);
                 var buffer = Encoding.UTF8.GetBytes(serializedData);

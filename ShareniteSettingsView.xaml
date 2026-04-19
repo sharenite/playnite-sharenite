@@ -47,5 +47,9 @@
             IsChecked="{Binding Settings.ShowErrors}"
             Content="Show error pop-ups"
                   Margin="0,4,0,0"/>
+        <CheckBox x:Name="ExcludeHidden"
+            IsChecked="{Binding Settings.ExcludeHidden}"
+            Content="Exclude hidden games"
+                  Margin="0,4,0,0"/>
     </StackPanel>
 </UserControl>
