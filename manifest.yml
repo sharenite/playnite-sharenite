@@ -1,5 +1,11 @@
 AddonId: Sharenite_62d53f25-4e62-4f27-a49e-89e73cb1fd48
 Packages:
+  - Version: 0.11
+    RequiredApiVersion: 6.9.0
+    ReleaseDate: 2026-04-26
+    PackageUrl: https://github.com/sharenite/playnite-sharenite/releases/download/0.11/Sharenite_0_11.pext
+    Changelog:
+      - Added the option to exclude hidden games from synchronization
   - Version: 0.10
     RequiredApiVersion: 6.9.0
     ReleaseDate: 2026-03-01
